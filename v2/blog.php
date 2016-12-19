@@ -1,7 +1,6 @@
 <?php
 
-class BlogLoader
-{
+class BlogJsonLoader implements IBlogLoader{
     /**
      * @param String $path
      * @return array
@@ -30,16 +29,41 @@ class BlogLoader
         return $articles;
     }
 
+}
 
+/**
+ * Class BlogCSVLoader charge les articles depuis fichier csv
+ * id / title / content / date / authorId / firstname / lastname
+ */
+class BlogCSVLoader extends BlogJsonLoader{
+}
 
+/**
+ * Class BlogDBLoader charge les articles depuis une base de données
+ */
+class BlogDBLoader implements IBlogLoader{
+    /**
+     * @param $dbname
+     */
+    function load(String $path):array
+    {
+        // TODO: Implement load() method.
+    }
+}
+
+interface IBlogLoader{
+    /**
+     * @param String $path
+     * @return array Article
+     */
+    function load(String $path):array;
 }
 
 /**
  * Class Author
  * description d'un rédacteur
  */
-class Author
-{
+class Author{
     public $id;
     public $firstName;
     public $LastName;
@@ -82,8 +106,7 @@ class Author
 /**
  * Class Article
  */
-class Article
-{
+class Article{
     public $id;
     public $title;
     public $content;
@@ -101,8 +124,7 @@ class Article
 }
 
 
-class ArticleRenderer
-{
+class ArticleRenderer{
     public function __construct(Article $article)
     {
        $this->article = $article;
@@ -126,8 +148,7 @@ class ArticleRenderer
     }
 }
 
-class Blog
-{
+class Blog{
     public $title;
     public $articles;
 
@@ -188,8 +209,7 @@ class Blog
 }
 
 // et pourquoi pas essayer de trouver 2/3 trucs à mettre dans un "helper"
-class ViewHelper
-{
+class ViewHelper{
 
 }
 
