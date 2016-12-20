@@ -1,0 +1,41 @@
+{
+  "authors":[
+    {
+      "id":1,
+      "firstname":"Bob",
+      "lastname":"Lee"
+    },{
+      "id":2,
+      "firstname":"Jack",
+      "lastname":"Roc"
+    }
+  ],
+  "articles":[
+    {
+      "id":"1",
+      "title":"Intro",
+      "content":"La POO c'est...",
+      "authorId":2,
+      "date":"20161109"
+    },{
+      "id":"2",
+      "title":"Les Classes",
+      "content":"Une classe est...",
+      "authorId":2,
+      "date":"20161111"
+    },{
+      "id":"3",
+      "title":"Le constructeur",
+      "content":"Lorsqu'on instancie...",
+      "authorId":1,
+      "date":"20161112"
+    },{
+      "id":"4",
+      "title":"Les Proprietés",
+      "content":"Une classe peut définir des propriétés...",
+      "authorId":1,
+      "date":"20161115"
+    }
+  ]
+
+}
