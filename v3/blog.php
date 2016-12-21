@@ -16,18 +16,23 @@ class BlogJsonLoader implements IBlogLoader{
      * @param String $rawData donnees json_decodées
      * @return array
      */
-/*
+
     public function parse(String $rawData):array
     {
         $rawAuthors = json_decode($rawData, true)['authors'];
         $authors = array_map(function ($rawAuthor){
-            return new Author($rawAuthor['id'], $rawAuthor['firstname'], $rawAuthor['lastname']);
+
+            return new Author(
+                    $rawAuthor['id'],
+                    $rawAuthor['firstname'],
+                    $rawAuthor['lastname']
+            );
         }, $rawAuthors);
 
 
         $rawArticles = json_decode($rawData, true)['articles'];
-        $articles = array_map(function ($rawArticles) use ($authors){
-            $articleAuthorsId = $rawArticles['authorId'];
+        $articles = array_map(function ($rawArticle) use ($authors){
+            $articleAuthorsId = $rawArticle['authorId'];
 
             $articleAuthors = array_filter($authors, function($author) use ($articleAuthorsId){
                 return $author->id == $articleAuthorsId;
@@ -35,15 +40,19 @@ class BlogJsonLoader implements IBlogLoader{
 
             $articleAuthor = current($articleAuthors);
 
-            return new Article($rawArticles['id'], $rawArticles['title'],
-                $rawArticles['content'], $articleAuthor,
-                new DateTime($rawArticles['date']));
+            return new Article(
+                    $rawArticle['id'],
+                    $rawArticle['title'],
+                    $rawArticle['content'],
+                    $articleAuthor,
+                    new DateTime($rawArticle['date'])
+            );
 
         }, $rawArticles);
 
         return $articles;
     }
-*/
+
 }
 
 /**
@@ -57,8 +66,20 @@ class BlogCSVLoader extends BlogJsonLoader{
         $csvParse = array_map('str_getcsv', file($rawData));
 
         $articles = array_map(function($article){
-            $author = new Author($article[0], $article[1], $article[2]);
-            return new Article($article[3],$article[4],$article[5], $author, new DateTime($article[7]));
+
+            $author = new Author(
+                    $article[0],
+                    $article[1],
+                    $article[2]
+            );
+
+            return new Article(
+                    $article[3],
+                    $article[4],
+                    $article[5],
+                    $author,
+                    new DateTime($article[7])
+            );
         },$csvParse);
 
         return $articles;
@@ -81,30 +102,59 @@ class BlogDBLoader implements IBlogLoader{
         //Connexion à la base de donnée
         try {
             $connexion = new PDO(
-                'mysql:host=localhost; dbname=blog; charset-utf-8',
+                'mysql:host=localhost; dbname=' .$path. '; charset-utf-8',
                 'root', 'root');
         } catch (Exception $e) {
             die('Erreur: ' . $e->getMessage());
         }
 
-        //On prépare les données de articles
-        $requeteArticles = "SELECT * from articles";
-        $resultatArticles = $connexion->query($requeteArticles);
-        $dataArticles = $resultatArticles->fetch();
-
         //On prépare les données de auteurs
         $requeteAuthors = "SELECT id, prenom, nom from auteurs";
         $resultatAuthors = $connexion->prepare($requeteAuthors);
         $resultatAuthors->execute();
-        $dataAuthors = $resultatAuthors->fetch(PDO::FETCH_ASSOC);
+        $dataAuthors = $resultatAuthors->fetchAll(PDO::FETCH_ASSOC);
 
-        print_r($dataAuthors);
-
+        //On va créer un nouvel auteur pour chaque ligne du tableau d'auteurs de la bdd
         $authors = array_map(function($author){
-            return new Author($author['id'], $author['prenom'], $author['nom']);
+
+            return new Author(
+                    $author['id'],
+                    $author['prenom'],
+                    $author['nom']
+            );
         }, $dataAuthors);
 
 
+
+        //On prépare les données de articles
+        $requeteArticles = "SELECT * from articles";
+        $resultatArticles = $connexion->prepare($requeteArticles);
+        $resultatArticles->execute();
+        $dataArticles = $resultatArticles->fetchAll(PDO::FETCH_ASSOC);
+
+        //On va créer de nouveaux articles à partir du tableau venant de la bdd
+        $articles = array_map(function($article) use ($authors){
+            $articleAuthorsId = $article['id_authors'];
+
+            //On filtre les auteurs afin de faire correspondre (id de l'auteur) avec (auteur_id de article)
+            $articleAuthors = array_filter($authors, function($author) use ($articleAuthorsId){
+                return $author->id == $articleAuthorsId;
+            });
+
+            $articleAuthor = current($articleAuthors);
+
+            //création d'un nouvel article avec les données qui ont été récupéré
+            return new Article(
+                    $article['id_article'],
+                    $article['title'],
+                    $article['content'],
+                    $articleAuthor,
+                    new DateTime($article['date'])
+            );
+
+        },$dataArticles);
+
+        return $articles;
     }
 
 }
@@ -201,7 +251,8 @@ class ArticleRenderer{
         return "<h2>". $this->article->title ."</h2>"
             ."<p>". $this->article->content ."</p>"
             ."<p>". $this->article->author->getShortName() ."</p>"
-            ." Ecrit le " .$this->article->publicationDate->format('d-m-Y');
+            ." Ecrit le " .$this->article->publicationDate->format('d-m-Y')
+            ."<p><a href=$_SERVER[PHP_SELF]>Accueil</a></p>";
 
     }
 }
@@ -271,8 +322,8 @@ class ViewHelper{
 
 }
 
-$loader = new BlogCSVLoader();
-$articles = $loader->parseCSV('blog2.csv');
+$loader = new BlogDBLoader();
+$articles = $loader->load('blog');
 $blog = new Blog('Vive la POO', $articles);
 
 ?>
