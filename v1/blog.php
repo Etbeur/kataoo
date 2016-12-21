@@ -11,7 +11,6 @@ class BlogLoader
         $dataFile = file_get_contents($path);
         return json_decode($dataFile, true);
 
-
     }
 
 

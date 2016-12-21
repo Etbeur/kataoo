@@ -36,6 +36,7 @@ class BlogJsonLoader implements IBlogLoader{
  * id / title / content / date / authorId / firstname / lastname
  */
 class BlogCSVLoader extends BlogJsonLoader{
+
 }
 
 /**
@@ -47,7 +48,7 @@ class BlogDBLoader implements IBlogLoader{
      */
     function load(String $path):array
     {
-        // TODO: Implement load() method.
+
     }
 }
 
@@ -213,7 +214,7 @@ class ViewHelper{
 
 }
 
-$loader = new BlogLoader();
+$loader = new BlogJsonLoader();
 $articles = $loader->load('blog.json');
 $blog = new Blog('Vive la POO', $articles);
 
